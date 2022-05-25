@@ -1,7 +1,7 @@
 {
-	"name": "fcc-api-projects-boilerplate",
+	"name": "mz-api-project-portfolio",
 	"version": "0.0.1",
-	"description": "An FCC Backend Challenge",
+	"description": "my Backend project for FCC Backend Challenge",
 	"main": "index.js",
 	"scripts": {
 		"start": "node index.js"

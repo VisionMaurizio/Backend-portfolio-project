@@ -12,10 +12,11 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://githost.com/camper/repo.git"
+		"url": "https://github.com/VisionMaurizio/Backend-portfolio-project"
 	},
 	"keywords": [
 		"node",
+		"heroku",
 		"hyperdev",
 		"express",
 		"freecodecamp"

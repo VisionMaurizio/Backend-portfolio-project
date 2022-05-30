@@ -25,8 +25,28 @@ app.get("/api/hello", function (req, res) {
   res.json({greeting: 'hello API'});
 });
 
+app.get("/api", (req, res) => {
+  let now = new Date()
+
+  res.json({
+    "unix": now.getTime(),
+    "utc": now.toUTCString()
+  });
+});
+
 app.get("/api/:date_string", function (req, res) {
-  res.json({error : 'Invalid Date' });
+  let dateString = req.params.date_string;
+  let passedValue = new Date(dateString);
+
+  if (passedValue == 'Invalid Date') {
+    res.json({error : 'Invalid Date' });
+  } else  {
+    res.json({
+      "unix": passedValue.getTime(),
+      "utc": passedValue.toUTCString()
+    });
+  };
+
 })
 
 

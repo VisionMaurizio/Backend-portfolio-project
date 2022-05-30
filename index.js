@@ -25,7 +25,7 @@ app.get("/api/hello", function (req, res) {
   res.json({greeting: 'hello API'});
 });
 
-app.get("/api/timestamp/:date_string", function (req, res) {
+app.get("/api/:date_string", function (req, res) {
   res.json({error : 'Invalid Date' });
 })
 

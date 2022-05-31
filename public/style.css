@@ -9,7 +9,7 @@ body {
 	line-height: 1.4em;
 }
 
-.container {
+main, .container {
 	padding: 0;
 	margin-top: 40px;
 }
@@ -44,3 +44,22 @@ li {
 a {
 	color: #2574A9;
 }
+
+form {
+	margin: 10px auto;
+	padding: 20px;
+	max-width: 600px;
+  }
+  
+  label {
+	margin-right: 10px;
+  }
+  
+  input {
+	padding: 5px;
+  }
+  
+  input[type='text'] {
+	width: 220px;
+	text-align: center;
+  }

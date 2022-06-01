@@ -23,7 +23,6 @@ var schema = mongoose.Schema
 // so that your API is remotely testable by FCC
 var cors = require("cors");
 const { acceptsLanguages } = require("express/lib/request");
-const { seed } = require("shortid");
 app.use(cors({ optionsSuccessStatus: 200 })); // some legacy browsers choke on 204
 
 // http://expressjs.com/en/starter/static-files.html
@@ -117,32 +116,30 @@ let dataSchema = new schema({
 const shortURL = mongoose.model('ShortUrl', dataSchema);
 
 app.post("/api/shorturl", function(req, res){
-
   let clientRequestUrl = req.body.url;
   let suffix = shortid.generate();
 
   let newUrl = new shortURL({
+    short_url: __dirname + "api/shorturl/" + suffix,
     original_url: clientRequestUrl,
-    short_url: suffix    
+    suffix: suffix
   })
 
   newUrl.save((err, doc) => {
     if (err) return console.log(err)
     res.json({
+      'short_url': newUrl.short_url,
       'original_url': newUrl.original_url,
-      'short_url': suffix      
+      'suffix': newUrl.suffix
     });
   });
-});
+})
 
-app.get("/api/shorturl/:suffix", (req, res) =>{
-  let userGeneratedSuffix = req.params.suffix;
-
-  shortURL.find({suffix: userGeneratedSuffix }).then(foundUrls =>{
-    let urlForRedirect = foundUrls[0];
-    res.redirect(urlForRedirect.original_url);
-  });
-});
+app.get("/api/shorturl/:suffix", async (req, res) =>{
+  let userGeneretedSuffix = req.params.suffix
+  let userRequestedUrl = await shortURL.findOne({ suffix: userGeneretedSuffix });
+  res.redirect(userRequestedUrl.original_url)
+})
 
 
 // listen for requests :)

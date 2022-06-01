@@ -123,7 +123,7 @@ app.post("/api/shorturl", async function(req, res){
   let clientRequestUrl = req.body.url;
   let suffix = shortid.generate();
 
-  if (!validUrl.isWebUri(URL)){
+  if (!validUrl.isWebUri(clientRequestUrl)){
     res.status(401).json({
       error: 'Invalid URL'
     })
@@ -135,10 +135,10 @@ app.post("/api/shorturl", async function(req, res){
       if (findOne) {
         res.json({
           original_url:findOne.original_url,
-          short_url: findOne.suffix
+          short_url: findOne.short_url
         })
       } else {
-        findOne = new shortURL({
+        findOne = new URL({
           original_url: clientRequestUrl,
           short_url: suffix
         })
@@ -160,8 +160,8 @@ app.get("/api/shorturl/:suffix?", async (req, res) => {
   const userGeneretedSuffix = await URL.findOne({
     short_url: req.params.suffix
   })
-  if (urlParams) {
-    return res.redirect(urlParams.original_url)
+  if (userGeneretedSuffix) {
+    return res.redirect(userGeneretedSuffix.original_url)
   } else {
     return res.status(404).json('No URL found')
   }

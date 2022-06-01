@@ -23,6 +23,7 @@ var schema = mongoose.Schema
 // so that your API is remotely testable by FCC
 var cors = require("cors");
 const { acceptsLanguages } = require("express/lib/request");
+const { seed } = require("shortid");
 app.use(cors({ optionsSuccessStatus: 200 })); // some legacy browsers choke on 204
 
 // http://expressjs.com/en/starter/static-files.html
@@ -121,17 +122,15 @@ app.post("/api/shorturl", function(req, res){
   let suffix = shortid.generate();
 
   let newUrl = new shortURL({
-    short_url: __dirname + "/api/shorturl/" + suffix,
     original_url: clientRequestUrl,
-    suffix: suffix
+    short_url: suffix    
   })
 
   newUrl.save((err, doc) => {
     if (err) return console.log(err)
     res.json({
-      'short_url': newUrl.short_url,
       'original_url': newUrl.original_url,
-      'suffix': newUrl.suffix
+      'short_url': suffix      
     });
   });
 });

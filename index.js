@@ -2,12 +2,14 @@
 // where your node app starts
 
 // init project
+'use strict'
 var express = require("express");
 var mongodb = require('mongodb');
 var mongoose = require('mongoose');
 require('dotenv').config({ path: './.env' });
 var shortid = require('shortid')
 var bodyParser = require('body-parser');
+var validUrl = require('valid-url')
 var app = express();
 var port = process.env.PORT || 5000;
 
@@ -16,13 +18,15 @@ mongoose.connect(process.env.MONGO_URI, {
   useUnifiedTopology: true
 })
 
-var schema = mongoose.Schema 
-
+const connection = mongoose.connection;
+connection.on('error', console.error.bind(console, 'connection error'));
+connection.once('open',() => {
+  console.log("mongoDB database connection enstablished successfully")
+})
 
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 // so that your API is remotely testable by FCC
 var cors = require("cors");
-const { acceptsLanguages } = require("express/lib/request");
 app.use(cors({ optionsSuccessStatus: 200 })); // some legacy browsers choke on 204
 
 // http://expressjs.com/en/starter/static-files.html
@@ -107,38 +111,64 @@ app.use(bodyParser.urlencoded({ extended: false }))
 // parse application/json
 app.use(bodyParser.json())
 
-let dataSchema = new schema({
-  short_url: String,
+const Schema = mongoose.Schema;
+const urlSchema = new Schema({
   original_url: String,
-  suffix: String
-});
+  short_url: String
+}) 
+const URL = mongoose.model('URL', urlSchema);
 
-const shortURL = mongoose.model('ShortUrl', dataSchema);
 
-app.post("/api/shorturl", function(req, res){
+app.post("/api/shorturl", async function(req, res){
   let clientRequestUrl = req.body.url;
   let suffix = shortid.generate();
 
-  let newUrl = new shortURL({
-    short_url: __dirname + "api/shorturl/" + suffix,
-    original_url: clientRequestUrl,
-    suffix: suffix
+  if (!validUrl.isWebUri(URL)){
+    res.status(401).json({
+      error: 'Invalid URL'
+    })
+  } else {
+    try {
+      let findOne = await URL.findOne({
+        original_url: clientRequestUrl
+      })
+      if (findOne) {
+        res.json({
+          original_url:findOne.original_url,
+          short_url: findOne.suffix
+        })
+      } else {
+        findOne = new shortURL({
+          original_url: clientRequestUrl,
+          short_url: suffix
+        })
+       await findOne.save()
+       res.json({
+         original_url: findOne.original_url,
+         short_url: findOne.short_url
+       }) 
+      }
+    } catch (err) {
+      console.error(err)
+      res.status(500).json('Server error...')
+    }
+  }
+});
+
+app.get("/api/shorturl/:suffix?", async (req, res) => {
+  try {
+  const userGeneretedSuffix = await URL.findOne({
+    short_url: req.params.suffix
   })
-
-  newUrl.save((err, doc) => {
-    if (err) return console.log(err)
-    res.json({
-      'short_url': newUrl.short_url,
-      'original_url': newUrl.original_url,
-      'suffix': newUrl.suffix
-    });
-  });
-})
-
-app.get("/api/shorturl/:suffix", async (req, res) =>{
-  let userGeneretedSuffix = req.params.suffix
-  let userRequestedUrl = await shortURL.findOne({ suffix: userGeneretedSuffix });
-  res.redirect(userRequestedUrl.original_url)
+  if (urlParams) {
+    return res.redirect(urlParams.original_url)
+  } else {
+    return res.status(404).json('No URL found')
+  }
+} catch (err) {
+  console.log(err)
+  res.status(500).json('Server error')
+}
 })
 
 

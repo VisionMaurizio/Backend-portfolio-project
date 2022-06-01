@@ -108,34 +108,42 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
 let dataSchema = new schema({
-  shortURL: String,
-  clientRequestUrl: String,
+  short_url: String,
+  original_url: String,
+  suffix: String
 });
 
 const shortURL = mongoose.model('ShortUrl', dataSchema);
 
 app.post("/api/shorturl", function(req, res){
+
   let clientRequestUrl = req.body.url;
-  let suffix = shortid.generate(integer);
+  let suffix = shortid.generate();
 
   let newUrl = new shortURL({
-    short_url: __dirname + "api/shorturl/" + suffix,
+    short_url: __dirname + "/api/shorturl/" + suffix,
     original_url: clientRequestUrl,
     suffix: suffix
   })
 
   newUrl.save((err, doc) => {
     if (err) return console.log(err)
-    done(null, doc)
     res.json({
+      'short_url': newUrl.short_url,
       'original_url': newUrl.original_url,
-      'shortener_url': newUrl.short_url,
       'suffix': newUrl.suffix
     });
   });
+});
 
-})
+app.get("/api/shorturl/:suffix", (req, res) =>{
+  let userGeneratedSuffix = req.params.suffix;
 
+  shortURL.find({suffix: userGeneratedSuffix }).then(foundUrls =>{
+    let urlForRedirect = foundUrls[0];
+    res.redirect(urlForRedirect.original_url);
+  });
+});
 
 
 // listen for requests :)

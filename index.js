@@ -10,6 +10,7 @@ require('dotenv').config({ path: './.env' });
 var shortid = require('shortid')
 var bodyParser = require('body-parser');
 var dns = require('dns')
+const URL = require('url').URL;
 var app = express();
 var port = process.env.PORT || 5000;
 
@@ -127,6 +128,9 @@ app.post("/api/shorturl", async function(req, res){
   const urlObject = new URL(clientRequestUrl)
 
   dns.lookup(urlObject.hostname, async (err) => {  
+    console.log(urlObject)
+    console.log(urlObject.hostname)
+    console.log(clientRequestUrl)
     if (err) {
       res.json({
         error: 'Invalid URL'

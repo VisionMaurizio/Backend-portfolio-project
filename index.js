@@ -11,6 +11,7 @@ var shortid = require('shortid')
 var bodyParser = require('body-parser');
 var dns = require('dns')
 const URL = require('url').URL;
+const {ObjectId} = require('mongodb');
 var app = express();
 var port = process.env.PORT || 5000;
 
@@ -28,7 +29,6 @@ connection.once('open',() => {
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 // so that your API is remotely testable by FCC
 var cors = require("cors");
-const { url } = require("inspector");
 app.use(cors({ optionsSuccessStatus: 200 })); // some legacy browsers choke on 204
 
 // http://expressjs.com/en/starter/static-files.html
@@ -52,6 +52,9 @@ app.get("/url-shortener-microservice", function (req, res) {
   res.sendFile(__dirname + "/views/url-shortener-microservice.html");
 });
 
+app.get("/exercise-tracker", function (req, res) {
+  res.sendFile(__dirname + "/views/exercise-tracker.html");
+});
 
 
 // your first API endpoint...
@@ -105,8 +108,6 @@ app.get("/api/:date_string", function (req, res) {
 
 //Url Shortener Service
 
-
-
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
 
@@ -127,10 +128,7 @@ app.post("/api/shorturl", async function(req, res){
 
   const urlObject = new URL(clientRequestUrl)
 
-  dns.lookup(urlObject.hostname, async (err) => {  
-    console.log(urlObject)
-    console.log(urlObject.hostname)
-    console.log(clientRequestUrl)
+  dns.lookup(urlObject.hostname, async (err) => { 
     if (err) {
       res.json({
         error: 'Invalid URL'
@@ -179,6 +177,21 @@ app.get("/api/shorturl/:suffix?", async (req, res) => {
   console.log(err)
   res.status(500).json('Server error')
 }
+});
+
+//Exercise tracker
+
+app.post("/api/users", (req, res) =>{
+  const username = req.body.username
+
+  let userId = new ObjectId();
+
+  
+
+  res.json({
+    username: username,
+    _id: userId
+  })
 })
 
 

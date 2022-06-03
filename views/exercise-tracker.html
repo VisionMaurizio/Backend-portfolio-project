@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Exercise Tracker | freeCodeCamp</title>
+    
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet" type="text/css" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+  </head>
+
+  <body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 offset-md-3">
+      <h1>Exercise tracker</h1>
+      <form action="/api/users" method="post">
+        <h3>Create a New User</h3>
+        <p><code>POST /api/users</code></p>
+        <input id="uname" type="text" name="username" placeholder="username" class="form-control"/>
+        <input type="submit" value="Submit" class="btn btn-block btn-primary my-4" />
+      </form>
+      <form id="exercise-form" method="post">
+        <h3>Add exercises</h3>
+        <p><code>POST /api/users/:_id/exercises</code></p>
+        <div class="mb-3">
+        <input id="uid" type="text" name=":_id" placeholder=":_id" class="form-control"/>
+        </div>
+        <div class="mb-3">
+        <input id="desc" type="text" name="description" placeholder="description*" class="form-control"/>
+        </div>
+        <div class="mb-3">
+        <input id="dur" type="text" name="duration" placeholder="duration* (mins.)" class="form-control"/>
+        </div>
+        <div class="mb-3">
+        <input id="date" type="text" name="date" placeholder="date (yyyy-mm-dd)" class="form-control" />
+        </div>
+        <input type="submit" value="Submit" class="btn btn-block btn-primary my-3" />
+      </form>
+      <p>
+        <strong>GET user's exercise log: </strong>
+        <code>GET /api/users/:_id/logs?[from][&amp;to][&amp;limit]</code>
+      </p>
+      <p><strong>[ ]</strong> = optional</p>
+      <p><strong>from, to</strong> = dates (yyyy-mm-dd); <strong>limit</strong> = number</p>
+      </div>
+    </div>
+    </div>
+    <script>
+      const exerciseForm = document.getElementById("exercise-form");
+
+      exerciseForm.addEventListener("submit", () => {
+        const userId = document.getElementById("uid").value;
+        exerciseForm.action = `/api/users/${userId}/exercises`;
+
+        exerciseForm.submit();
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2" crossorigin="anonymous"></script>
+  </body>
+</html>
+

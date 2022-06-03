@@ -120,8 +120,8 @@ const URL = mongoose.model('URL', urlSchema);
 
 
 app.post("/api/shorturl", async function(req, res){
-  let clientRequestUrl = req.body.url;
-  let suffix = shortid.generate();
+  let clientRequestUrl = req.body.url_input
+  let suffix = shortid.generate()
 
   if (!validUrl.isWebUri(clientRequestUrl)){
     res.status(401).json({
@@ -130,7 +130,8 @@ app.post("/api/shorturl", async function(req, res){
   } else {
     try {
       let findOne = await URL.findOne({
-        original_url: clientRequestUrl
+        original_url: clientRequestUrl,
+        short_url: suffix
       })
       if (findOne) {
         res.json({

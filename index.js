@@ -120,8 +120,8 @@ const URL = mongoose.model('URL', urlSchema);
 
 
 app.post("/api/shorturl", async function(req, res){
-  let clientRequestUrl = req.body.url
-  let suffix = shortid.generate()
+  const clientRequestUrl = req.body.url
+  const suffix = shortid.generate()
 
   if (!validUrl.isWebUri(clientRequestUrl)){
     res.status(401).json({

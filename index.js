@@ -81,7 +81,7 @@ app.get("/api", (req, res) => {
   });
 });
 
-app.get("/api/:date_string", function (req, res) {
+{/* app.get("/api/:date_string", function (req, res) {
   let dateString = req.params.date_string;
 
   if (parseInt(dateString) > 10000) {
@@ -95,14 +95,14 @@ app.get("/api/:date_string", function (req, res) {
   let passedValue = new Date(dateString);
 
   if (passedValue == "Invalid Date") {
-    res.json({ 'error': "Invalid Date" });
+    res.json({ 'error': "Invalid id" });
   } else {
     res.json({
       unix: passedValue.getTime(),
       utc: passedValue.toUTCString(),
     })
   }
-});
+}); */}
 
 
 
@@ -181,19 +181,32 @@ app.get("/api/shorturl/:suffix?", async (req, res) => {
 
 //Exercise tracker
 
+const ExerciseUser = mongoose.model('ExerciseUser', new Schema({
+  username: String,
+  _id: String
+}));
+
 app.post("/api/users", (req, res) =>{
   const username = req.body.username
-
   let userId = new ObjectId();
 
-  
+  let exerciseUser = new ExerciseUser({    
+      username: username,
+      _id: userId
+    });
 
-  res.json({
-    username: username,
-    _id: userId
-  })
-})
+    exerciseUser.save((err, doc) => {
+      if (err) return console.error(err)
+      res.json({
+        username: exerciseUser.username,
+        _id: exerciseUser._id
+      });
+    });    
+  });
 
+  app.get("/api/users",  (req, res) => {
+    ExerciseUser.find({}, (err, exerciseUser) => err ? console.log(err) : res.json(exerciseUser));
+  });
 
 // listen for requests :)
 var listener = app.listen(port, function () {

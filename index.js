@@ -9,7 +9,7 @@ var mongoose = require('mongoose');
 require('dotenv').config({ path: './.env' });
 var shortid = require('shortid')
 var bodyParser = require('body-parser');
-var validUrl = require('valid-url')
+var dns = require('dns')
 var app = express();
 var port = process.env.PORT || 5000;
 
@@ -27,6 +27,7 @@ connection.once('open',() => {
 // enable CORS (https://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
 // so that your API is remotely testable by FCC
 var cors = require("cors");
+const { url } = require("inspector");
 app.use(cors({ optionsSuccessStatus: 200 })); // some legacy browsers choke on 204
 
 // http://expressjs.com/en/starter/static-files.html
@@ -116,20 +117,23 @@ const urlSchema = new Schema({
   original_url: String,
   short_url: String
 }) 
-const URL = mongoose.model('URL', urlSchema);
+const mongooseURL = mongoose.model('URL', urlSchema);
 
 
 app.post("/api/shorturl", async function(req, res){
   const clientRequestUrl = req.body.url
   const suffix = shortid.generate()
 
-  if (!validUrl.isWebUri(clientRequestUrl)){
-    res.status(401).json({
-      error: 'Invalid URL'
-    })
+  const urlObject = new URL(clientRequestUrl)
+
+  dns.lookup(urlObject.hostname, async (err) => {  
+    if (err) {
+      res.json({
+        error: 'Invalid URL'
+      })
   } else {
     try {
-      let findOne = await URL.findOne({
+      let findOne = await mongooseURL.findOne({
         original_url: clientRequestUrl,
         short_url: suffix
       })
@@ -139,7 +143,7 @@ app.post("/api/shorturl", async function(req, res){
           short_url: findOne.short_url
         })
       } else {
-        findOne = new URL({
+        findOne = new mongooseURL({
           original_url: clientRequestUrl,
           short_url: suffix
         })
@@ -155,10 +159,11 @@ app.post("/api/shorturl", async function(req, res){
     }
   }
 });
+});
 
 app.get("/api/shorturl/:suffix?", async (req, res) => {
   try {
-  const userGeneretedSuffix = await URL.findOne({
+  const userGeneretedSuffix = await mongooseURL.findOne({
     short_url: req.params.suffix
   })
   if (userGeneretedSuffix) {

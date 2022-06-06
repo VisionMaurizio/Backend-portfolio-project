@@ -211,7 +211,10 @@ app.post("/api/users", (req, res) => { let exerciseUser = new ExerciseUser({ use
   app.post("/api/users/:_id/exercises", (req, res) => {
     const id = req.params._id
     const username = req.params.username
-    const { description, duration, date } = req.body
+    let { description, duration, date } = req.body
+    if (!date ){
+      date = new Date().toISOString().substring(0, 10)      
+    }
 
     const newExe = new NewExercise ({
       userId: id,
@@ -221,10 +224,6 @@ app.post("/api/users", (req, res) => { let exerciseUser = new ExerciseUser({ use
       date: new Date(date) 
     })
     
-    if (newExe.date === '') {
-      newExe.date = new Date().toISOString().substring(0, 10)
-      
-    }
 
     ExerciseUser.findByIdAndUpdate(
       id, 
@@ -238,23 +237,12 @@ app.post("/api/users", (req, res) => { let exerciseUser = new ExerciseUser({ use
         username: userData.username,
         description,
         duration,
-        date: new Date(newExe.date),
+        date: new Date(newExe.date).toDateString(),
         _id: userData.id
       })
     }
   })
-
-
-    {/*  newExe.save((err, data) =>{
-        if (err || !data) {
-          res.send("there was an error saving this exercise")
-        } else {
-          })
-        }
-      }) */}
-
-
-  })
+})
 
 // listen for requests :)
 var listener = app.listen(port, function () {

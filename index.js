@@ -182,21 +182,20 @@ app.get("/api/shorturl/:suffix?", async (req, res) => {
 //Exercise tracker
 
 const ExerciseUser = mongoose.model('ExerciseUser', new Schema({
-  username: String,
-  _id: String
+  username: { type: String, required: true }
 }));
 
-app.post("/api/users", (req, res) =>{
-  const username = req.body.username
-  let userId = new ObjectId();
+const NewExercise = mongoose.model('NewExercise', new Schema({
+  description: { type: String, required: true },
+  duration: { type: Number, required: true },
+  date: Date
+}))
 
-  let exerciseUser = new ExerciseUser({    
-      username: username,
-      _id: userId
-    });
-
+app.post("/api/users", (req, res) => { let exerciseUser = new ExerciseUser({ username: req.body.username });
     exerciseUser.save((err, doc) => {
-      if (err) return console.error(err)
+      if (err || !doc) {
+        res.send("there is an error saving the user")
+      }
       res.json({
         username: exerciseUser.username,
         _id: exerciseUser._id
@@ -208,31 +207,52 @@ app.post("/api/users", (req, res) =>{
     ExerciseUser.find({}, (err, exerciseUser) => err ? console.log(err) : res.json(exerciseUser));
   });
 
-  const NewExercise = mongoose.model('NewExercise', new Schema({
-    description: String,
-    duration: Number,
-    date: Date
-  }))
   
   app.post("/api/users/:_id/exercises", (req, res) => {
-    let description = req.body.description
-    let duration = req.body.duration
-    let date = req.body.date
-    
-    let newExe = new NewExercise ({
-      description: description,
-      duration: duration,
-      date: date || new Date()
-    });
+    const id = req.params._id
+    const username = req.params.username
+    const { description, duration, date } = req.body
 
-    newExe.save((err, data) =>{
-      if (err) return console.error(err)
-      res.json({
-        description: newExe.description,
-        duration: newExe.duration,
-        date: newExe.date
-      })
+    const newExe = new NewExercise ({
+      userId: id,
+      username: username,
+      description,
+      duration,
+      date: new Date(date) 
     })
+    
+    if (newExe.date === '') {
+      newExe.date = new Date().toISOString().substring(0, 10)
+      
+    }
+
+    ExerciseUser.findByIdAndUpdate(
+      id, 
+      {$push: {log: newExe}},
+      {new : true},
+      (err, userData) => {
+      if (err || !userData){
+      res.send("Could not find user");
+    } else {
+      res.json({
+        username: userData.username,
+        description,
+        duration,
+        date: new Date(newExe.date),
+        _id: userData.id
+      })
+    }
+  })
+
+
+    {/*  newExe.save((err, data) =>{
+        if (err || !data) {
+          res.send("there was an error saving this exercise")
+        } else {
+          })
+        }
+      }) */}
+
 
   })
 

@@ -208,6 +208,34 @@ app.post("/api/users", (req, res) =>{
     ExerciseUser.find({}, (err, exerciseUser) => err ? console.log(err) : res.json(exerciseUser));
   });
 
+  const NewExercise = mongoose.model('NewExercise', new Schema({
+    description: String,
+    duration: Number,
+    date: Date
+  }))
+  
+  app.post("/api/users/:_id/exercises", (req, res) => {
+    let description = req.body.description
+    let duration = req.body.duration
+    let date = req.body.date
+    
+    let newExe = new NewExercise ({
+      description: description,
+      duration: duration,
+      date: date || new Date()
+    });
+
+    newExe.save((err, data) =>{
+      if (err) return console.error(err)
+      res.json({
+        description: newExe.description,
+        duration: newExe.duration,
+        date: newExe.date
+      })
+    })
+
+  })
+
 // listen for requests :)
 var listener = app.listen(port, function () {
   console.log("Your app is listening on port " + listener.address().port);

@@ -11,7 +11,6 @@ var shortid = require('shortid')
 var bodyParser = require('body-parser');
 var dns = require('dns')
 const URL = require('url').URL;
-const {ObjectId} = require('mongodb');
 var app = express();
 var port = process.env.PORT || 5000;
 
@@ -182,13 +181,19 @@ app.get("/api/shorturl/:suffix?", async (req, res) => {
 //Exercise tracker
 
 const ExerciseUser = mongoose.model('ExerciseUser', new Schema({
-  username: { type: String, required: true }
+  username: { type: String, required: true },
 }));
 
 const NewExercise = mongoose.model('NewExercise', new Schema({
-  description: { type: String, required: true },
-  duration: { type: Number, required: true },
+  description: String,
+  duration: Number,
   date: Date
+}))
+
+const logSchema = mongoose.model('LogUser', new Schema({
+  username : String,
+  count: Number,
+  log: Array
 }))
 
 app.post("/api/users", (req, res) => { let exerciseUser = new ExerciseUser({ username: req.body.username });
@@ -211,7 +216,7 @@ app.post("/api/users", (req, res) => { let exerciseUser = new ExerciseUser({ use
   app.post("/api/users/:_id/exercises", (req, res) => {
     const id = req.params._id
     const username = req.params.username
-    let { description, duration, date } = req.body
+    let date = req.body.date
     if (!date ){
       date = new Date().toISOString().substring(0, 10)      
     }
@@ -219,10 +224,12 @@ app.post("/api/users", (req, res) => { let exerciseUser = new ExerciseUser({ use
     const newExe = new NewExercise ({
       userId: id,
       username: username,
-      description,
-      duration,
+      description: req.body.description,
+      duration: Number(req.body.duration),
       date: new Date(date) 
     })
+
+    
     
 
     ExerciseUser.findByIdAndUpdate(
@@ -235,13 +242,80 @@ app.post("/api/users", (req, res) => { let exerciseUser = new ExerciseUser({ use
     } else {
       res.json({
         username: userData.username,
-        description,
-        duration,
+        description : req.body.description,
+        duration: Number(req.body.duration),
         date: new Date(newExe.date).toDateString(),
         _id: userData.id
       })
     }
   })
+})
+
+app.get("/api/users/:_id/logs", (req, res) => {
+ const {from, to, limit} = req.query;
+ let userId = req.params._id;
+
+ ExerciseUser.findById(userId, (err, data) => {
+   let query = {
+     username: data.username
+   }
+
+   if (from !== undefined && to === undefined){
+     query.date = {$gte: new Date(from)}
+   } else if (to !== undefined && from === undefined) {
+      query.date = {$lte: new Date(to) }
+   } else if (from !== undefined && to !== undefined) {
+     query.date = {$gte: new Date(from), $lte: new Date(to)}
+   }
+
+   let limitChecker = (limit) => {
+     let maxLimit = 100;
+     if (limit) {
+       return limit;
+     } else {
+       return maxLimit;
+     }
+   }
+
+   if (err) {
+     console.log(err)
+   } else {
+     NewExercise.find((query), null, {limit: limitChecker(+limit)}, (err, docs) => {
+       let loggedArray = [];
+       if (err) {
+         console.log("error with query => ", err)
+       } else {
+         let documents = docs;
+         let loggedArray = documents.map((item) => {
+           return {
+             description: item.description,
+             duration: item.duration,
+             date: item.date.toDateString()
+           }
+         });
+         
+         const test = new logSchema({
+           username: data.username,
+           count: loggedArray.length,
+           log: loggedArray
+         })
+
+         test.save((err, save) => {
+           if(err) {
+             console.log("error saving exercise => ", err);
+           } else {
+             res.json({
+               _id: userId,
+               username: save.username,
+               count: save.count,
+               log: loggedArray
+             })
+           }
+         })
+       }
+     })
+   }
+ })
 })
 
 // listen for requests :)

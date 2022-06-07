@@ -185,6 +185,7 @@ const ExerciseUser = mongoose.model('ExerciseUser', new Schema({
 }));
 
 const NewExercise = mongoose.model('NewExercise', new Schema({
+  username: String,
   description: String,
   duration: Number,
   date: Date
@@ -214,17 +215,19 @@ app.post("/api/users", (req, res) => { let exerciseUser = new ExerciseUser({ use
 
   
   app.post("/api/users/:_id/exercises", (req, res) => {
-    const id = req.params._id
-    const username = req.params.username
+    const idJson = { "_id": req.params._id};
+    const idToCheck = idJson._id
     let date = req.body.date
     if (!date ){
       date = new Date().toISOString().substring(0, 10)      
     }   
+    
 
-    ExerciseUser.findById(id, (err, userData) => {
+    ExerciseUser.findById(idToCheck, (err, userData) => {
       if (err || !userData){
       res.send("Could not find user");
-    } else {      
+    } else {
+      
         const newExe = new NewExercise({
         username: userData.username,
         description : req.body.description,
@@ -235,13 +238,13 @@ app.post("/api/users", (req, res) => { let exerciseUser = new ExerciseUser({ use
       newExe.save((err, data) => {
         if (err) {
           console.log("could not save new exercise")
-        } else {
+        } else {          
           res.json({
             username: data.username,
             description: data.description,
             duration: data.duration,
             date: data.date.toDateString(),
-            _id: id
+            _id: idToCheck
           })
         }
       })

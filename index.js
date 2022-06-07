@@ -219,33 +219,31 @@ app.post("/api/users", (req, res) => { let exerciseUser = new ExerciseUser({ use
     let date = req.body.date
     if (!date ){
       date = new Date().toISOString().substring(0, 10)      
-    }
+    }   
 
-    const newExe = new NewExercise ({
-      userId: id,
-      username: username,
-      description: req.body.description,
-      duration: Number(req.body.duration),
-      date: new Date(date) 
-    })
-
-    
-    
-
-    NewExercise.findByIdAndUpdate(
-      id, 
-      {$push: {log: newExe}},
-      {new : true},
-      (err, userData) => {
+    ExerciseUser.findById(id, (err, userData) => {
       if (err || !userData){
       res.send("Could not find user");
-    } else {
-      res.json({
+    } else {      
+        const newExe = new NewExercise({
         username: userData.username,
         description : req.body.description,
         duration: Number(req.body.duration),
-        date: new Date(newExe.date).toDateString(),
-        _id: userData.id
+        date: new Date(date).toDateString()
+      })
+
+      newExe.save((err, data) => {
+        if (err) {
+          console.log("could not save new exercise")
+        } else {
+          res.json({
+            username: data.username,
+            description: data.description,
+            duration: data.duration,
+            date: data.date.toDateString(),
+            _id: id
+          })
+        }
       })
     }
   })

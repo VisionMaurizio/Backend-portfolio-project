@@ -232,7 +232,7 @@ app.post("/api/users", (req, res) => { let exerciseUser = new ExerciseUser({ use
     
     
 
-    ExerciseUser.findByIdAndUpdate(
+    NewExercise.findByIdAndUpdate(
       id, 
       {$push: {log: newExe}},
       {new : true},
